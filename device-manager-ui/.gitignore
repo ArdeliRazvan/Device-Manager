@@ -1,0 +1,16 @@
+# .NET
+**/bin/
+**/obj/
+**/*.user
+.vs/
+
+# Angular
+device-manager-ui/node_modules/
+device-manager-ui/dist/
+
+# Environment
+**/appsettings.Development.json
+
+# OS
+.DS_Store
+Thumbs.db

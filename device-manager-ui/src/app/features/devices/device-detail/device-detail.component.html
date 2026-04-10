@@ -1,0 +1,81 @@
+<div class="page-container">
+
+  <div *ngIf="loading" class="loading-container"><div class="spinner"></div></div>
+  <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+
+  <ng-container *ngIf="device && !loading">
+
+    <div class="detail-header">
+      <button class="btn btn-ghost btn-sm" (click)="goBack()">← Back</button>
+      <div class="header-actions">
+        <button class="btn btn-primary" *ngIf="canAssign()" (click)="assign()">Assign to me</button>
+        <button class="btn btn-secondary" *ngIf="canUnassign()" (click)="unassign()">Unassign</button>
+        <button class="btn btn-secondary" (click)="editDevice()">Edit</button>
+        <button class="btn btn-danger" (click)="confirmDelete()">Delete</button>
+      </div>
+    </div>
+
+    <div *ngIf="showDeleteConfirm" class="confirm-banner">
+      <span>Delete <strong>{{ device.name }}</strong>?</span>
+      <div class="confirm-actions">
+        <button class="btn btn-danger btn-sm" (click)="deleteDevice()">Yes, delete</button>
+        <button class="btn btn-ghost btn-sm" (click)="cancelDelete()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="card-title-row">
+        <div>
+          <h2>{{ device.name }}</h2>
+          <span class="badge" [class]="device.type === 'phone' ? 'badge-phone' : 'badge-tablet'">
+            {{ device.type }}
+          </span>
+        </div>
+        <div class="assignment-badge" [class.assigned]="assignedUser" [class.available]="!assignedUser">
+          {{ assignedUser ? 'In use' : 'Available' }}
+        </div>
+      </div>
+
+      <div class="specs-grid">
+        <div class="spec-item">
+          <span class="spec-label">Manufacturer</span>
+          <span class="spec-value">{{ device.manufacturer }}</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Operating System</span>
+          <span class="spec-value">{{ device.os }} {{ device.osVersion }}</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Processor</span>
+          <span class="spec-value">{{ device.processor }}</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">RAM</span>
+          <span class="spec-value">{{ device.ram }} GB</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Assigned To</span>
+          <span class="spec-value" [class.text-muted]="!assignedUser">
+            {{ assignedUser ? assignedUser.name : '— Not assigned' }}
+          </span>
+        </div>
+        <div class="spec-item" *ngIf="assignedUser">
+          <span class="spec-label">User Location</span>
+          <span class="spec-value">{{ assignedUser.location }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="device.description" class="description-section">
+        <span class="spec-label">Description</span>
+        <p class="description-text">{{ device.description }}</p>
+      </div>
+
+      <div class="timestamps">
+        <span>Added: {{ device.createdAt | date:'mediumDate' }}</span>
+        <span>Updated: {{ device.updatedAt | date:'mediumDate' }}</span>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

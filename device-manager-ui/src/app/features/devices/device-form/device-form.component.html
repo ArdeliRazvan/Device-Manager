@@ -1,0 +1,139 @@
+<div class="page-container">
+
+  <div class="page-header">
+    <button class="btn btn-ghost btn-sm" (click)="cancel()">← Back</button>
+    <h1>{{ isEditMode ? 'Edit Device' : 'Add New Device' }}</h1>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+  <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+  <form *ngIf="!loading" [formGroup]="form" (ngSubmit)="onSubmit()" class="device-form" novalidate>
+
+    <div class="form-grid">
+
+      <!-- Name -->
+      <div class="form-group">
+        <label for="name">Name <span class="required">*</span></label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="e.g. iPhone 15 Pro"
+          [class.is-invalid]="isFieldInvalid('name')"
+        />
+        <span class="field-error" *ngIf="isFieldInvalid('name')">
+          {{ getFieldError('name') }}
+        </span>
+      </div>
+
+      <!-- Manufacturer -->
+      <div class="form-group">
+        <label for="manufacturer">Manufacturer <span class="required">*</span></label>
+        <input
+          id="manufacturer"
+          type="text"
+          formControlName="manufacturer"
+          placeholder="e.g. Apple"
+          [class.is-invalid]="isFieldInvalid('manufacturer')"
+        />
+        <span class="field-error" *ngIf="isFieldInvalid('manufacturer')">
+          {{ getFieldError('manufacturer') }}
+        </span>
+      </div>
+
+      <!-- Type -->
+      <div class="form-group">
+        <label for="type">Type <span class="required">*</span></label>
+        <select id="type" formControlName="type" [class.is-invalid]="isFieldInvalid('type')">
+          <option *ngFor="let t of deviceTypes" [value]="t">{{ t | titlecase }}</option>
+        </select>
+        <span class="field-error" *ngIf="isFieldInvalid('type')">
+          {{ getFieldError('type') }}
+        </span>
+      </div>
+
+      <!-- RAM -->
+      <div class="form-group">
+        <label for="ram">RAM (GB) <span class="required">*</span></label>
+        <select id="ram" formControlName="ram" [class.is-invalid]="isFieldInvalid('ram')">
+          <option *ngFor="let r of ramOptions" [value]="r">{{ r }} GB</option>
+        </select>
+        <span class="field-error" *ngIf="isFieldInvalid('ram')">
+          {{ getFieldError('ram') }}
+        </span>
+      </div>
+
+      <!-- OS -->
+      <div class="form-group">
+        <label for="os">Operating System <span class="required">*</span></label>
+        <input
+          id="os"
+          type="text"
+          formControlName="os"
+          placeholder="e.g. iOS, Android"
+          [class.is-invalid]="isFieldInvalid('os')"
+        />
+        <span class="field-error" *ngIf="isFieldInvalid('os')">
+          {{ getFieldError('os') }}
+        </span>
+      </div>
+
+      <!-- OS Version -->
+      <div class="form-group">
+        <label for="osVersion">OS Version <span class="required">*</span></label>
+        <input
+          id="osVersion"
+          type="text"
+          formControlName="osVersion"
+          placeholder="e.g. 17.4"
+          [class.is-invalid]="isFieldInvalid('osVersion')"
+        />
+        <span class="field-error" *ngIf="isFieldInvalid('osVersion')">
+          {{ getFieldError('osVersion') }}
+        </span>
+      </div>
+
+      <!-- Processor - full width -->
+      <div class="form-group form-group--full">
+        <label for="processor">Processor <span class="required">*</span></label>
+        <input
+          id="processor"
+          type="text"
+          formControlName="processor"
+          placeholder="e.g. Apple A17 Pro"
+          [class.is-invalid]="isFieldInvalid('processor')"
+        />
+        <span class="field-error" *ngIf="isFieldInvalid('processor')">
+          {{ getFieldError('processor') }}
+        </span>
+      </div>
+
+      <!-- Description - full width -->
+      <div class="form-group form-group--full">
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          placeholder="Optional description..."
+          rows="3"
+        ></textarea>
+      </div>
+
+    </div>
+
+    <!-- Form actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" (click)="cancel()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="submitting">
+        <span *ngIf="submitting" class="spinner-sm"></span>
+        {{ submitting ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Device') }}
+      </button>
+    </div>
+
+  </form>
+</div>

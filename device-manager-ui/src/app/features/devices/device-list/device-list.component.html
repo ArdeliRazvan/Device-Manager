@@ -1,0 +1,96 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1>Device Inventory</h1>
+      <p class="subtitle">{{ devices.length }} device{{ devices.length !== 1 ? 's' : '' }} total</p>
+    </div>
+    <a routerLink="/devices/new" class="btn btn-primary">
+      <span class="btn-icon">+</span> Add Device
+    </a>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="alert alert-error">
+    {{ error }}
+    <button (click)="error = ''" class="alert-close">×</button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading devices...</p>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && devices.length === 0 && !error" class="empty-state">
+    <div class="empty-icon">📱</div>
+    <h3>No devices yet</h3>
+    <p>Add the first device to get started.</p>
+    <a routerLink="/devices/new" class="btn btn-primary">Add Device</a>
+  </div>
+
+  <!-- Device table -->
+  <div *ngIf="!loading && devices.length > 0" class="table-container">
+    <table class="device-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Manufacturer</th>
+          <th>Type</th>
+          <th>OS</th>
+          <th>RAM</th>
+          <th>Assigned To</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let device of devices"
+          class="table-row"
+          (click)="viewDetails(device.id)"
+        >
+          <td class="device-name">{{ device.name }}</td>
+          <td>{{ device.manufacturer }}</td>
+          <td>
+            <span class="badge" [ngClass]="getTypeBadgeClass(device.type)">
+              {{ device.type }}
+            </span>
+          </td>
+          <td>{{ device.os }} {{ device.osVersion }}</td>
+          <td>{{ device.ram }} GB</td>
+          <td>
+            <span *ngIf="device.assignedUserName" class="assigned-user">
+              {{ device.assignedUserName }}
+            </span>
+            <span *ngIf="!device.assignedUserName" class="unassigned">
+              — Available
+            </span>
+          </td>
+          <td class="actions-cell" (click)="$event.stopPropagation()">
+
+            <!-- Confirmare delete inline -->
+            <ng-container *ngIf="deleteConfirmId === device.id; else normalActions">
+              <span class="confirm-text">Delete?</span>
+              <button class="btn btn-danger btn-sm" (click)="deleteDevice(device.id)">Yes</button>
+              <button class="btn btn-ghost btn-sm" (click)="cancelDelete()">No</button>
+            </ng-container>
+
+            <ng-template #normalActions>
+              <button
+                class="btn btn-ghost btn-sm"
+                (click)="editDevice(device.id, $event)"
+                title="Edit"
+              >Edit</button>
+              <button
+                class="btn btn-danger-ghost btn-sm"
+                (click)="confirmDelete(device.id, $event)"
+                title="Delete"
+              >Delete</button>
+            </ng-template>
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

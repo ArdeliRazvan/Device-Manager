@@ -1,0 +1,27 @@
+<div class="app-shell">
+  <nav class="navbar" *ngIf="currentUser">
+    <div class="navbar-inner">
+      <a routerLink="/devices" class="navbar-brand">
+        <span class="brand-icon">📱</span>
+        Device Manager
+      </a>
+      <div class="navbar-links">
+        <a routerLink="/devices" routerLinkActive="active"
+           [routerLinkActiveOptions]="{exact: false}" class="nav-link">
+          Devices
+        </a>
+        <a routerLink="/devices/new" class="btn btn-primary btn-sm">
+          + Add Device
+        </a>
+        <div class="user-menu">
+          <span class="user-name">{{ currentUser.name }}</span>
+          <button class="btn btn-ghost btn-sm" (click)="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
