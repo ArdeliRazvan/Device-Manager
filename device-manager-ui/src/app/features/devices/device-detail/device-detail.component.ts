@@ -14,10 +14,13 @@ import { User } from '../../../core/models/user.model';
 export class DeviceDetailComponent implements OnInit {
   device: Device | null = null;
   assignedUser: User | null = null;
-  loading = false;
-  error = '';
-  successMessage = '';
-  showDeleteConfirm = false;
+  users: User[] = []; 
+  selectedUserId: string = ''; 
+  isAssigning: boolean = false;
+  loading: boolean = false;
+  error: string = '';
+  successMessage: string = '';
+  showDeleteConfirm: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -30,6 +33,9 @@ export class DeviceDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) this.loadDevice(id);
+    if (this.authService.isAdmin) {
+      this.loadUsers();
+    }
   }
 
   private loadDevice(id: string): void {
@@ -43,6 +49,7 @@ export class DeviceDetailComponent implements OnInit {
             error: () => { this.loading = false; }
           });
         } else {
+          this.assignedUser = null;
           this.loading = false;
         }
       },
@@ -50,45 +57,70 @@ export class DeviceDetailComponent implements OnInit {
     });
   }
 
-  canAssign(): boolean {
-    return !!this.authService.currentUser && !this.device?.assignedUserId;
+  private loadUsers(): void {
+    this.userService.getAll().subscribe({
+      next: (data) => this.users = data,
+      error: () => console.error('Error loading users')
+    });
   }
 
-  canUnassign(): boolean {
-    return this.device?.assignedUserId === this.authService.currentUser?.userId;
+  startAssign(): void {
+    this.isAssigning = true;
   }
 
-  assign(): void {
-    this.deviceService.assign(this.device!.id).subscribe({
+  cancelAssign(): void {
+    this.isAssigning = false;
+    this.selectedUserId = '';
+  }
+
+  confirmAssign(): void {
+    if (!this.selectedUserId || !this.device) return;
+    this.loading = true;
+    this.deviceService.assign(this.device.id, this.selectedUserId).subscribe({
       next: () => {
-        this.successMessage = 'Device assigned to you!';
+        this.successMessage = 'Assigned successfully!';
+        this.isAssigning = false;
+        this.selectedUserId = '';
         this.loadDevice(this.device!.id);
+        setTimeout(() => this.successMessage = '', 3000);
       },
-      error: () => { this.error = 'Could not assign device.'; }
+      error: () => {
+        this.error = 'Assignment failed.';
+        this.loading = false;
+      }
     });
   }
 
   unassign(): void {
-    this.deviceService.unassign(this.device!.id).subscribe({
+    if (!this.device || !confirm('Are you sure?')) return;
+    this.loading = true;
+    this.deviceService.unassign(this.device.id).subscribe({
       next: () => {
-        this.successMessage = 'Device unassigned.';
-        this.assignedUser = null;
-        this.device!.assignedUserId = undefined;
+        this.successMessage = 'Unassigned successfully.';
+        this.loadDevice(this.device!.id);
+        setTimeout(() => this.successMessage = '', 3000);
       },
-      error: () => { this.error = 'Could not unassign device.'; }
+      error: () => { this.error = 'Unassignment failed.'; this.loading = false; }
     });
+  }
+
+  canAssign(): boolean {
+    return this.authService.isAdmin && !this.device?.assignedUserId;
+  }
+
+  canUnassign(): boolean {
+    if (!this.device?.assignedUserId) return false;
+    return this.authService.isAdmin || this.device.assignedUserId === this.authService.currentUser?.userId;
   }
 
   editDevice(): void { this.router.navigate(['/devices', this.device!.id, 'edit']); }
   confirmDelete(): void { this.showDeleteConfirm = true; }
-  cancelDelete(): void  { this.showDeleteConfirm = false; }
-
+  cancelDelete(): void { this.showDeleteConfirm = false; }
   deleteDevice(): void {
     this.deviceService.delete(this.device!.id).subscribe({
       next: () => this.router.navigate(['/devices']),
       error: () => { this.error = 'Delete failed.'; this.showDeleteConfirm = false; }
     });
   }
-
   goBack(): void { this.router.navigate(['/devices']); }
 }

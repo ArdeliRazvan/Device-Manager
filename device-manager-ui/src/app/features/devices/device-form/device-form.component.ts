@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DeviceService } from '../../../core/services/device.service';
 import { Device } from '../../../core/models/device.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-device-form',
@@ -26,7 +27,8 @@ export class DeviceFormComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private deviceService: DeviceService
+    private deviceService: DeviceService,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -48,7 +50,7 @@ export class DeviceFormComponent implements OnInit {
       os:           ['', Validators.required],
       osVersion:    ['', Validators.required],
       processor:    ['', Validators.required],
-      ram:          [8, [Validators.required, Validators.min(1), Validators.max(64)]],
+      ram:           [8, [Validators.required, Validators.min(1), Validators.max(64)]],
       description:  ['']
     });
   }
@@ -57,7 +59,18 @@ export class DeviceFormComponent implements OnInit {
     this.loading = true;
     this.deviceService.getById(id).subscribe({
       next: (device: Device) => {
+        // Permitem accesul doar dacă e Admin sau dacă e posesorul dispozitivului
+        const isOwner = device.assignedUserId === this.authService.currentUserId;
+        const isAdmin = this.authService.isAdmin;
+
+        if (!isAdmin && !isOwner) {
+          this.error = 'Nu ai permisiunea de a edita acest dispozitiv.';
+          setTimeout(() => this.router.navigate(['/devices']), 2000);
+          return;
+        }
+
         // Populăm formularul cu datele existente
+        // Toate câmpurile rămân editabile indiferent de rol, dar validarea impiedica salvare daca nu ii apartine userului sau daca nu e admin
         this.form.patchValue({
           name:         device.name,
           manufacturer: device.manufacturer,
@@ -77,7 +90,6 @@ export class DeviceFormComponent implements OnInit {
     });
   }
 
-  // Getter rapid pentru câmpuri — folosit în template pentru validare
   get f() { return this.form.controls; }
 
   isFieldInvalid(field: string): boolean {
@@ -92,15 +104,14 @@ export class DeviceFormComponent implements OnInit {
     if (control.errors['required'])   return 'This field is required.';
     if (control.errors['minlength'])  return `Minimum ${control.errors['minlength'].requiredLength} characters.`;
     if (control.errors['maxlength'])  return `Maximum ${control.errors['maxlength'].requiredLength} characters.`;
-    if (control.errors['min'])        return `Minimum value is ${control.errors['min'].min}.`;
-    if (control.errors['max'])        return `Maximum value is ${control.errors['max'].max}.`;
+    if (control.errors['min'])         return `Minimum value is ${control.errors['min'].min}.`;
+    if (control.errors['max'])         return `Maximum value is ${control.errors['max'].max}.`;
     if (control.errors['duplicate'])  return 'A device with this name already exists.';
 
     return 'Invalid value.';
   }
 
   onSubmit(): void {
-    // Marchăm toate câmpurile ca touched pentru a afișa erorile
     this.form.markAllAsTouched();
 
     if (this.form.invalid) return;
@@ -125,6 +136,7 @@ export class DeviceFormComponent implements OnInit {
         }
       });
     } else {
+      // Această zonă va fi accesibilă doar de Admin
       this.deviceService.create(formValue).subscribe({
         next: (created) => {
           this.successMessage = 'Device created successfully!';
@@ -133,7 +145,6 @@ export class DeviceFormComponent implements OnInit {
         },
         error: (err) => {
           if (err.status === 409) {
-            // Setăm eroarea direct pe câmpul name
             this.form.get('name')?.setErrors({ duplicate: true });
           } else if (err.status === 400) {
             this.error = 'Please check all fields and try again.';

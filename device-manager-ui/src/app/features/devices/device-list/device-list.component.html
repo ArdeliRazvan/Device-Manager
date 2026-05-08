@@ -4,32 +4,31 @@
       <h1>Device Inventory</h1>
       <p class="subtitle">{{ devices.length }} device{{ devices.length !== 1 ? 's' : '' }} total</p>
     </div>
-    <a routerLink="/devices/new" class="btn btn-primary">
+    <!-- Butonul Add Device apare doar pentru ADMIN -->
+    <a *ngIf="authService.isAdmin" routerLink="/devices/new" class="btn btn-primary">
       <span class="btn-icon">+</span> Add Device
     </a>
   </div>
 
-  <!-- Error -->
   <div *ngIf="error" class="alert alert-error">
     {{ error }}
     <button (click)="error = ''" class="alert-close">×</button>
   </div>
 
-  <!-- Loading -->
+ 
   <div *ngIf="loading" class="loading-container">
     <div class="spinner"></div>
     <p>Loading devices...</p>
   </div>
 
-  <!-- Empty state -->
   <div *ngIf="!loading && devices.length === 0 && !error" class="empty-state">
     <div class="empty-icon">📱</div>
     <h3>No devices yet</h3>
     <p>Add the first device to get started.</p>
-    <a routerLink="/devices/new" class="btn btn-primary">Add Device</a>
+    <!-- Butonul de Add Device din empty state apare doar pentru ADMIN -->
+    <a *ngIf="authService.isAdmin" routerLink="/devices/new" class="btn btn-primary">Add Device</a>
   </div>
 
-  <!-- Device table -->
   <div *ngIf="!loading && devices.length > 0" class="table-container">
     <table class="device-table">
       <thead>
@@ -68,7 +67,7 @@
           </td>
           <td class="actions-cell" (click)="$event.stopPropagation()">
 
-            <!-- Confirmare delete inline -->
+            <!-- Confirmare delete inline: Doar ADMIN vede confirmarea -->
             <ng-container *ngIf="deleteConfirmId === device.id; else normalActions">
               <span class="confirm-text">Delete?</span>
               <button class="btn btn-danger btn-sm" (click)="deleteDevice(device.id)">Yes</button>
@@ -76,12 +75,17 @@
             </ng-container>
 
             <ng-template #normalActions>
+              <!-- Edit apare pentru Admin SAU pentru Userul căruia îi aparține device-ul -->
               <button
+                *ngIf="authService.isAdmin || device.assignedUserId === authService.currentUserId"
                 class="btn btn-ghost btn-sm"
                 (click)="editDevice(device.id, $event)"
                 title="Edit"
               >Edit</button>
+
+              <!-- Butonul Delete apare daor pentru ADMIN -->
               <button
+                *ngIf="authService.isAdmin"
                 class="btn btn-danger-ghost btn-sm"
                 (click)="confirmDelete(device.id, $event)"
                 title="Delete"

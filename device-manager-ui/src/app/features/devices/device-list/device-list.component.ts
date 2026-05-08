@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { DeviceService } from '../../../core/services/device.service';
 import { UserService } from '../../../core/services/user.service';
+import { AuthService } from '../../../core/services/auth.service'; // Importă AuthService
 import { Device } from '../../../core/models/device.model';
 import { User } from '../../../core/models/user.model';
 
@@ -17,14 +18,15 @@ interface DeviceWithUser extends Device {
 })
 export class DeviceListComponent implements OnInit {
   devices: Device[] = [];
-  users: Map<string, string> = new Map(); // id -> nume user
+  users: Map<string, string> = new Map(); 
   loading = false;
   error = '';
-  deleteConfirmId: string | null = null; // id-ul device-ului în așteptare de confirmare
+  deleteConfirmId: string | null = null; 
 
   constructor(
     private deviceService: DeviceService,
     private userService: UserService,
+    public authService: AuthService, // Schimbat în public pentru HTML
     private router: Router
   ) {}
 
@@ -36,14 +38,12 @@ export class DeviceListComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    // Încarc users întâi, apoi devices
     this.userService.getAll().subscribe({
       next: (users: User[]) => {
         users.forEach(u => this.users.set(u.id, u.name));
         this.loadDevices();
       },
       error: () => {
-        // Dacă users eșuează, încarc devices oricum
         this.loadDevices();
       }
     });
@@ -52,7 +52,6 @@ export class DeviceListComponent implements OnInit {
   private loadDevices(): void {
     this.deviceService.getAll().subscribe({
       next: (devices: Device[]) => {
-        // Atașez numele userului la fiecare device
         this.devices = devices.map(d => ({
           ...d,
           assignedUserName: d.assignedUserId
@@ -73,7 +72,7 @@ export class DeviceListComponent implements OnInit {
   }
 
   editDevice(id: string, event: Event): void {
-    event.stopPropagation(); // nu naviga la detalii
+    event.stopPropagation(); 
     this.router.navigate(['/devices', id, 'edit']);
   }
 
@@ -87,6 +86,12 @@ export class DeviceListComponent implements OnInit {
   }
 
   deleteDevice(id: string): void {
+    // Verificare suplimentară de securitate și în Frontend
+    if (!this.authService.isAdmin) {
+      this.error = 'Doar administratorii pot șterge dispozitive.';
+      return;
+    }
+
     this.deviceService.delete(id).subscribe({
       next: () => {
         this.devices = this.devices.filter(d => d.id !== id);

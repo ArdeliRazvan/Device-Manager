@@ -1,31 +1,6 @@
-﻿/**
- * init-db.js — Script de inițializare și populare MongoDB
- *
- * IDEMPOTENT: Poate fi rulat de multiple ori fără a crea duplicate.
- * Verifică existența datelor înainte de inserare.
- *
- * Rulare:
- *   mongosh mongodb://localhost:27017 --file init-db.js
- *   sau: mongo mongodb://localhost:27017 --file init-db.js (versiuni vechi)
- *
- * Ce face:
- *   1. Creează baza de date DeviceManagerDB dacă nu există
- *   2. Creează colecțiile 'devices' și 'users' cu indecși unici
- *   3. Inserează date dummy pentru testare
- */
-
-
-// 1. SELECTARE BAZĂ DE DATE
-
-db = db.getSiblingDB("DeviceManagerDB");
+﻿db = db.getSiblingDB("DeviceManagerDB");
 
 print("=== Device Manager DB — Inițializare ===\n");
-
-
-// 2. CREARE COLECȚII CU VALIDARE SCHEMA (opțional, pentru robustețe)
-
-
-// Creăm colecția 'devices' dacă nu există deja
 const existingCollections = db.getCollectionNames();
 
 if (!existingCollections.includes("devices")) {
@@ -58,10 +33,6 @@ if (!existingCollections.includes("users")) {
     print("→ Colecția 'users' există deja.");
 }
 
-
-// CREARE INDECȘI (idempotent — MongoDB ignoră dacă există)
-
-
 db.devices.createIndex({ name: 1 }, { unique: true, name: "idx_device_name_unique" });
 db.devices.createIndex(
     { name: "text", manufacturer: "text", processor: "text" },
@@ -70,11 +41,6 @@ db.devices.createIndex(
 db.users.createIndex({ email: 1 }, { unique: true, name: "idx_user_email_unique" });
 
 print("✓ Indecși creați/verificați.");
-
-
-// DATE DUMMY — UTILIZATORI
-
-
 const usersToInsert = [
     {
         name: "Alexandru Popescu",
@@ -127,8 +93,6 @@ print(`✓ Utilizatori inserați: ${usersInserted}/${usersToInsert.length}\n`);
 // Preluăm ID-urile utilizatorilor pentru a asigna dispozitive
 const adminUser = db.users.findOne({ email: "alex.popescu@devicemanager.ro" });
 const mariaUser = db.users.findOne({ email: "maria.ionescu@devicemanager.ro" });
-
-//Dispozitivve
 
 const devicesToInsert = [
     {
@@ -250,11 +214,6 @@ for (const device of devicesToInsert) {
 }
 
 print(`✓ Dispozitive inserare: ${devicesInserted}/${devicesToInsert.length}\n`);
-
-// ============================================================
-// 6. VERIFICARE FINALĂ
-// ============================================================
-
 print("=== SUMAR ===");
 print(`Dispozitive în BD:  ${db.devices.countDocuments()}`);
 print(`Utilizatori în BD:  ${db.users.countDocuments()}`);

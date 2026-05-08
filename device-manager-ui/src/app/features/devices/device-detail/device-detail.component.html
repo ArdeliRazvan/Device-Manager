@@ -1,26 +1,37 @@
 <div class="page-container">
-
   <div *ngIf="loading" class="loading-container"><div class="spinner"></div></div>
   <div *ngIf="error" class="alert alert-error">{{ error }}</div>
   <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
 
   <ng-container *ngIf="device && !loading">
-
     <div class="detail-header">
       <button class="btn btn-ghost btn-sm" (click)="goBack()">← Back</button>
+      
       <div class="header-actions">
-        <button class="btn btn-primary" *ngIf="canAssign()" (click)="assign()">Assign to me</button>
-        <button class="btn btn-secondary" *ngIf="canUnassign()" (click)="unassign()">Unassign</button>
-        <button class="btn btn-secondary" (click)="editDevice()">Edit</button>
-        <button class="btn btn-danger" (click)="confirmDelete()">Delete</button>
-      </div>
-    </div>
+        <div class="assign-selection-zone" *ngIf="isAssigning">
+          <select [(ngModel)]="selectedUserId" class="form-select-sm">
+            <option value="" disabled>Select colleague...</option>
+            <option *ngFor="let user of users" [value]="user.id">
+              {{ user.name }} ({{ user.location }})
+            </option>
+          </select>
+          <button class="btn btn-success btn-sm" [disabled]="!selectedUserId" (click)="confirmAssign()">OK</button>
+          <button class="btn btn-ghost btn-sm" (click)="cancelAssign()">X</button>
+        </div>
 
-    <div *ngIf="showDeleteConfirm" class="confirm-banner">
-      <span>Delete <strong>{{ device.name }}</strong>?</span>
-      <div class="confirm-actions">
-        <button class="btn btn-danger btn-sm" (click)="deleteDevice()">Yes, delete</button>
-        <button class="btn btn-ghost btn-sm" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn-primary" *ngIf="canAssign() && !isAssigning" (click)="startAssign()">
+          Assign Device
+        </button>
+
+        <button class="btn btn-secondary" *ngIf="canUnassign()" (click)="unassign()">Unassign</button>
+        
+        <button class="btn btn-secondary" 
+                *ngIf="authService.isAdmin || device.assignedUserId === authService.currentUserId" 
+                (click)="editDevice()">
+          Edit
+        </button>
+
+        <button class="btn btn-danger" *ngIf="authService.isAdmin" (click)="confirmDelete()">Delete</button>
       </div>
     </div>
 
@@ -32,8 +43,8 @@
             {{ device.type }}
           </span>
         </div>
-        <div class="assignment-badge" [class.assigned]="assignedUser" [class.available]="!assignedUser">
-          {{ assignedUser ? 'In use' : 'Available' }}
+        <div class="assignment-badge" [class.assigned]="device.assignedUserId" [class.available]="!device.assignedUserId">
+          {{ device.assignedUserId ? 'In use' : 'Available' }}
         </div>
       </div>
 
@@ -56,7 +67,7 @@
         </div>
         <div class="spec-item">
           <span class="spec-label">Assigned To</span>
-          <span class="spec-value" [class.text-muted]="!assignedUser">
+          <span class="spec-value" [class.text-muted]="!device.assignedUserId">
             {{ assignedUser ? assignedUser.name : '— Not assigned' }}
           </span>
         </div>
@@ -76,6 +87,5 @@
         <span>Updated: {{ device.updatedAt | date:'mediumDate' }}</span>
       </div>
     </div>
-
   </ng-container>
 </div>

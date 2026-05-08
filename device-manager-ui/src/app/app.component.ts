@@ -11,7 +11,7 @@ import { CurrentUser } from './core/models/auth.model';
 export class AppComponent implements OnInit {
   currentUser: CurrentUser | null = null;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(public authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {

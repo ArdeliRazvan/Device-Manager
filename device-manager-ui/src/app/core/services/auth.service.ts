@@ -9,7 +9,6 @@ export class AuthService {
   private readonly TOKEN_KEY = 'dm_token';
   private readonly USER_KEY  = 'dm_user';
 
-  // BehaviorSubject — orice componentă se poate abona la userul curent
   private currentUserSubject = new BehaviorSubject<CurrentUser | null>(this.loadUser());
   currentUser$ = this.currentUserSubject.asObservable();
 
@@ -26,6 +25,15 @@ export class AuthService {
   get isLoggedIn(): boolean {
     return !!this.token;
   }
+  
+  get isAdmin(): boolean {
+    return this.currentUser?.role?.toLowerCase() === 'admin';
+  }
+
+  get currentUserId(): string | null {
+    return this.currentUser?.userId || null;
+  }
+
 
   register(dto: RegisterDto): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, dto).pipe(
@@ -59,6 +67,11 @@ export class AuthService {
 
   private loadUser(): CurrentUser | null {
     const raw = localStorage.getItem(this.USER_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
   }
-}   
+}

@@ -38,7 +38,7 @@ public class DevicesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "admin")]
     public async Task<ActionResult<DeviceResponseDto>> Create([FromBody] DeviceCreateDto dto)
     {
         if (await _repository.ExistsByNameAsync(dto.Name))
@@ -68,6 +68,12 @@ public class DevicesController : ControllerBase
         if (existing is null)
             return NotFound(new { message = $"Device '{id}' not found." });
 
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        var isAdmin = User.IsInRole("admin");
+
+        if (!isAdmin && existing.AssignedUserId != userId)
+            return Forbid();
+
         if (dto.Name is not null && !dto.Name.Equals(existing.Name, StringComparison.OrdinalIgnoreCase))
             if (await _repository.ExistsByNameAsync(dto.Name, excludeId: id))
                 return Conflict(new { message = $"A device named '{dto.Name}' already exists." });
@@ -86,7 +92,7 @@ public class DevicesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Delete(string id)
     {
         var success = await _repository.DeleteAsync(id);
@@ -94,26 +100,28 @@ public class DevicesController : ControllerBase
         return NoContent();
     }
 
-    // Asignează device-ul userului logat
     [HttpPost("{id}/assign")]
-    [Authorize]
-    public async Task<IActionResult> Assign(string id)
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> Assign(string id, [FromQuery(Name = "targetUserId")] string targetUserId)
     {
+        if (string.IsNullOrEmpty(targetUserId))
+            return BadRequest(new { message = "You must provide a target user ID." });
+
         var device = await _repository.GetByIdAsync(id);
         if (device is null) return NotFound(new { message = "Device not found." });
 
-        if (device.AssignedUserId is not null)
-            return Conflict(new { message = "Device is already assigned to another user." });
+        device.AssignedUserId = targetUserId;
+        device.UpdatedAt = DateTime.UtcNow;
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                  ?? User.FindFirstValue("sub");
-
-        device.AssignedUserId = userId;
         await _repository.UpdateAsync(id, device);
-        return Ok(new { message = "Device assigned successfully.", assignedUserId = userId });
+
+        return Ok(new
+        {
+            message = "Device successfully assigned by admin.",
+            assignedUserId = targetUserId
+        });
     }
 
-    // Deasignează device-ul — doar dacă e asignat userului logat
     [HttpPost("{id}/unassign")]
     [Authorize]
     public async Task<IActionResult> Unassign(string id)
@@ -121,13 +129,15 @@ public class DevicesController : ControllerBase
         var device = await _repository.GetByIdAsync(id);
         if (device is null) return NotFound(new { message = "Device not found." });
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                  ?? User.FindFirstValue("sub");
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        var isAdmin = User.IsInRole("admin");
 
-        if (device.AssignedUserId != userId)
+        if (!isAdmin && device.AssignedUserId != userId)
             return Forbid();
 
         device.AssignedUserId = null;
+        device.UpdatedAt = DateTime.UtcNow;
+
         await _repository.UpdateAsync(id, device);
         return Ok(new { message = "Device unassigned successfully." });
     }
