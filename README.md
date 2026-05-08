@@ -100,7 +100,7 @@ npm install \&\& ng serve
 
 
 
-&#x20;   Reliability: Integration tests using Testcontainers and idempotent scripts.
+&#x20;   Reliability: Idempotent scripts.
 
 
 
