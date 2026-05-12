@@ -2,17 +2,11 @@
 
 namespace DeviceManager.API.DTOs;
 
-// ---------------------------------------------------------------------------
 // DTO-urile (Data Transfer Objects) separă modelul intern de baza de date
-// de contractul public al API-ului. Aceasta respectă principiul SRP (SOLID)
+// de contractul public al API-ului.
 // și previne expunerea accidentală a câmpurilor interne (ex: passwordHash).
-// ---------------------------------------------------------------------------
 
-/// <summary>
-/// DTO folosit la crearea unui dispozitiv nou (POST /api/devices).
-/// Conține validări prin Data Annotations pentru a garanta integritatea datelor
-/// înainte ca acestea să ajungă la nivelul repository-ului.
-/// </summary>
+
 public class DeviceCreateDto
 {
     [Required(ErrorMessage = "Numele este obligatoriu.")]
@@ -41,10 +35,9 @@ public class DeviceCreateDto
     public string Description { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// DTO folosit la actualizarea unui dispozitiv existent (PUT /api/devices/{id}).
-/// Toate câmpurile sunt opționale — se actualizează doar cele trimise (partial update).
-/// </summary>
+/// DTO folosit la actualizarea unui dispozitiv existent (PUT)
+/// Toate câmpurile sunt opționale, se actualizează doar cele trimise (partial update).
+
 public class DeviceUpdateDto
 {
     [StringLength(100, MinimumLength = 2)]
@@ -67,10 +60,9 @@ public class DeviceUpdateDto
     public string? Description { get; set; }
 }
 
-/// <summary>
 /// DTO returnat de API ca răspuns (GET). Include ID-ul și timestamp-urile,
 /// dar exclude câmpuri interne sensibile.
-/// </summary>
+
 public class DeviceResponseDto
 {
     public string Id { get; set; } = string.Empty;

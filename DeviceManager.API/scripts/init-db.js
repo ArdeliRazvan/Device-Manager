@@ -47,7 +47,6 @@ const usersToInsert = [
         role: "admin",
         location: "București, România",
         email: "alex.popescu@devicemanager.ro",
-        // Parola: "Admin@1234" — în producție se folosește BCrypt din backend
         passwordHash: "$2a$12$examplehashforadmin000000000000000000000000000000000",
         createdAt: new Date()
     },

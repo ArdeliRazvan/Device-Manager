@@ -47,7 +47,7 @@ public class AuthService : IAuthService
     {
         var user = await _userRepository.GetByEmailAsync(dto.Email.ToLower().Trim());
 
-        // Verificăm email și parolă — același mesaj pentru ambele (securitate)
+        // Verificăm email și parolă — același mesaj pentru ambele 
         if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Invalid email or password.");
 

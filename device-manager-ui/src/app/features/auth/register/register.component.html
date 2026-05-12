@@ -35,13 +35,24 @@
         <span class="field-error" *ngIf="isInvalid('password')">{{ getError('password') }}</span>
       </div>
 
-      <div class="form-group">
-        <label>Location</label>
-        <input type="text" formControlName="location"
-               placeholder="e.g. Bucharest, Romania" />
-      </div>
+      <div formGroupName="location">
+        <div class="form-group">
+          <label>Country <span class="req">*</span></label>
+          <input type="text" formControlName="country"
+                 placeholder="e.g. Romania"
+                 [class.is-invalid]="isInvalid('location.country')" />
+          <span class="field-error" *ngIf="isInvalid('location.country')">Country is required.</span>
+        </div>
 
-      <button type="submit" class="btn-submit" [disabled]="loading">
+        <div class="form-group">
+          <label>City <span class="req">*</span></label>
+          <input type="text" formControlName="city"
+                 placeholder="e.g. Bucharest"
+                 [class.is-invalid]="isInvalid('location.city')" />
+          <span class="field-error" *ngIf="isInvalid('location.city')">City is required.</span>
+        </div>
+      </div>
+      <button type="submit" class="btn-submit" [disabled]="loading || form.invalid">
         <span *ngIf="loading" class="spinner-sm"></span>
         {{ loading ? 'Creating account...' : 'Create Account' }}
       </button>

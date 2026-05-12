@@ -59,7 +59,7 @@ export class DeviceFormComponent implements OnInit {
     this.loading = true;
     this.deviceService.getById(id).subscribe({
       next: (device: Device) => {
-        // Permitem accesul doar dacă e Admin sau dacă e posesorul dispozitivului
+        // Permitem accesul doar dacă e Admin sau daca e posesorul dispozitivului
         const isOwner = device.assignedUserId === this.authService.currentUserId;
         const isAdmin = this.authService.isAdmin;
 
@@ -69,8 +69,8 @@ export class DeviceFormComponent implements OnInit {
           return;
         }
 
-        // Populăm formularul cu datele existente
-        // Toate câmpurile rămân editabile indiferent de rol, dar validarea impiedica salvare daca nu ii apartine userului sau daca nu e admin
+        // Populam formularul cu datele existente
+        // Toate campurile raman editabile indiferent de rol, dar validarea impiedica salvare daca nu ii apartine userului sau daca nu e admin
         this.form.patchValue({
           name:         device.name,
           manufacturer: device.manufacturer,
@@ -101,12 +101,18 @@ export class DeviceFormComponent implements OnInit {
     const control = this.form.get(field);
     if (!control || !control.errors) return '';
 
-    if (control.errors['required'])   return 'This field is required.';
-    if (control.errors['minlength'])  return `Minimum ${control.errors['minlength'].requiredLength} characters.`;
-    if (control.errors['maxlength'])  return `Maximum ${control.errors['maxlength'].requiredLength} characters.`;
-    if (control.errors['min'])         return `Minimum value is ${control.errors['min'].min}.`;
-    if (control.errors['max'])         return `Maximum value is ${control.errors['max'].max}.`;
-    if (control.errors['duplicate'])  return 'A device with this name already exists.';
+    if (control.errors['required'])  
+       return 'This field is required.';
+    if (control.errors['minlength']) 
+       return `Minimum ${control.errors['minlength'].requiredLength} characters.`;
+    if (control.errors['maxlength'])
+       return `Maximum ${control.errors['maxlength'].requiredLength} characters.`;
+    if (control.errors['min'])
+       return `Minimum value is ${control.errors['min'].min}.`;
+    if (control.errors['max'])   
+       return `Maximum value is ${control.errors['max'].max}.`;
+    if (control.errors['duplicate'])  
+       return 'A device with this name already exists.';
 
     return 'Invalid value.';
   }

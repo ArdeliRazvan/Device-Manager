@@ -22,7 +22,11 @@ export class RegisterComponent {
       name:     ['', [Validators.required, Validators.minLength(2)]],
       email:    ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      location: ['']
+      location: this.fb.group(
+        {
+        city:    ['', Validators.required],
+        country: ['', Validators.required]
+        })
     });
   }
 
@@ -47,6 +51,13 @@ export class RegisterComponent {
 
     this.loading = true;
     this.error = '';
+
+    const rawValue = this.form.value;
+    const datatoSubmit = 
+    {
+      ...rawValue,
+      location : `${rawValue.location.city}, ${rawValue.location.country}`
+    };
 
     this.authService.register(this.form.value).subscribe({
       next: () => this.router.navigate(['/devices']),
